@@ -45,6 +45,21 @@ class TransformerBlock(nn.Module):
         x = self.transformer(x)
         x = x.transpose(1, 2)            # (B, T, C) → (B, C, T)
         return x
+    
+class DecoderBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=8, stride=4, padding=2, output_padding=0):    # 일단 output_padding을 0으로 두고 skip 때 조정
+        super().__init__()
+        self.deconv = nn.ConvTranspose1d(in_channels, out_channels, kernel_size, stride, padding, output_padding)
+        self.activation = nn.GELU()
+        self.norm = nn.LayerNorm(out_channels)
+
+    def forward(self, x):
+        x = self.deconv(x)              # (B, C_in, T) → (B, C_out, T_up)
+        x = self.activation(x)
+        x = x.transpose(1, 2)           # (B, C, T) → (B, T, C)
+        x = self.norm(x)
+        x = x.transpose(1, 2)           # (B, T, C) → (B, C, T)
+        return x
 
 class HTDemucs(nn.Module):
     def __init__(self):

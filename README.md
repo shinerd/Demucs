@@ -80,7 +80,20 @@ Configuration:
 
 ---
 
-### 6. Debugging Notes
+### 6. Decoder Block
+
+The decoder progressively upsamples the temporal dimension using `ConvTranspose1D`, reducing channel size at each stage. It mirrors the encoder structure in reverse.
+
+Each block includes:
+- `ConvTranspose1D` for upsampling
+- `GELU` activation
+- `LayerNorm` for channel-wise normalization
+
+Decoder output shapes are adjusted to match the original input resolution, typically with skip connections added later.
+
+---
+
+### 7. Debugging Notes
 
 If changes to `htdemucs.py` do not apply in notebooks, use:
 
@@ -102,6 +115,10 @@ This ensures the latest version is reloaded without restarting the kernel.
 - [ ] **Learnable Positional Encoding**
 - [ ] **DecoderBlock** with upsampling
 - [ ] **Skip Connections** between encoder and decoder
+- [ ] **Final Output Projection**
+- [ ] **Loss Function & Training Loop**
+- [ ] **Dataset Loader** (e.g., MUSDB18)
+- [ ] **Evaluation & Inference**
 
 ---
 
