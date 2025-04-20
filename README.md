@@ -52,15 +52,35 @@ A single downsampling block that performs:
 
 ---
 
-### 4. HTDemucs (Encoder Only)
+### 4. HTDemucs Model (Encoder + Transformer + Decoder)
 
-- Encoder expands channels progressively
-- Time resolution decreases due to stride=4
-- Output shape example: `(1, 1536, ~15)` for input of `(1, 1, 16000)`
+The full model is composed of:
+
+1. **Encoder Stack**: Conv1D blocks that extract and compress temporal features.
+2. **Transformer Block**: Captures long-term dependencies with self-attention.
+3. **Decoder Stack**: ConvTranspose1D blocks that upsample the features and restore resolution.
+
+Output shape is progressively reduced in the encoder (stride=4), passed through a Transformer, and then restored in the decoder. Skip connections between encoder and decoder layers are used to improve reconstruction accuracy.
 
 ---
 
-### 5. Debugging Notes
+### 5. Transformer Block
+
+The bottleneck of HTDemucs uses a stack of Transformer layers to capture long-term dependencies in the encoded feature sequence. This includes:
+
+- **Learnable positional encoding** to preserve temporal order
+- **Multi-head self-attention and feed-forward layers** for global context modeling
+- Input/output shape transformed between `(B, C, T)` and `(B, T, C)` for compatibility
+
+Configuration:
+- `d_model`: 1536
+- `nhead`: 8
+- `num_layers`: 6
+- `dropout`: 0.1
+
+---
+
+### 6. Debugging Notes
 
 If changes to `htdemucs.py` do not apply in notebooks, use:
 
