@@ -91,6 +91,14 @@ class HTDemucs(nn.Module):
         
         self.final_conv = nn.Conv1d(self.decoder_channels[-1], 1, kernel_size=1)
 
+        activation_type = model_cfg.get("final_activation", "none")
+        if activation_type == "tanh":
+            self.activation = nn.Tanh()
+        elif activation_type == "sigmoid":
+            self.activation = nn.Sigmoid()
+        else:
+            self.activation = nn.Identity()
+
     def forward(self, x):
         skips = []
         for layer in self.encoder:
@@ -112,4 +120,5 @@ class HTDemucs(nn.Module):
             x = torch.cat([x, skip], dim=1)
             x = layer(x)
 
-        return self.final_conv(x)
+        x = self.final_conv(x)
+        return self.activation(x)

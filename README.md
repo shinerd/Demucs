@@ -59,6 +59,8 @@ The full model is composed of:
 1. **Encoder Stack**: Conv1D blocks that extract and compress temporal features.
 2. **Transformer Block**: Captures long-term dependencies with self-attention.
 3. **Decoder Stack**: ConvTranspose1D blocks that upsample the features and restore resolution.
+4. **Skip Connections**: Direct links from encoder to decoder layers to enhance fine detail recovery.
+5. **Final Output Activation**: Optional normalization (`tanh`, `sigmoid`, or `none`) for waveform output
 
 Output shape is progressively reduced in the encoder (stride=4), passed through a Transformer, and then restored in the decoder. Skip connections between encoder and decoder layers are used to improve reconstruction accuracy.
 
@@ -122,6 +124,7 @@ All model architecture hyperparameters are now configurable via a YAML file (`co
 
 - `encoder_channels`, `kernel_size`, `stride`, `padding`
 - Transformer settings (`d_model`, `nhead`, `num_layers`, `dropout`)
+- `final_activation`: Controls final output shape (`tanh`, `sigmoid`, or `none`)
 
 Each encoder and decoder block receives its configuration from the YAML file, ensuring full modularity.
 

@@ -3,6 +3,7 @@ model:
   kernel_size: 8
   stride: 4
   padding: 2
+  final_activation: tanh
   transformer:
     d_model: 1536
     nhead: 8
