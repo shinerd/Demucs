@@ -1,0 +1,10 @@
+model:
+  encoder_channels: [48, 96, 192, 384, 768, 1536]
+  kernel_size: 8
+  stride: 4
+  padding: 2
+  transformer:
+    d_model: 1536
+    nhead: 8
+    num_layers: 6
+    dropout: 0.1

@@ -62,23 +62,31 @@ class DecoderBlock(nn.Module):
         return x
 
 class HTDemucs(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
-        self.encoder_channels = [48, 96, 192, 384, 768, 1536]
+        model_cfg = config["model"]
+
+        self.encoder_channels = model_cfg["encoder_channels"]
         self.decoder_channels = list(reversed(self.encoder_channels[:-1])) # 마지막 1536은 그대로 유지
+
+        self.kernel_size = model_cfg["kernel_size"]
+        self.stride = model_cfg["stride"]
+        self.padding = model_cfg["padding"]
+
         self.encoder = nn.ModuleList()
         self.decoder = nn.ModuleList()
 
         in_ch = 1
         for out_ch in self.encoder_channels:
-            self.encoder.append(EncoderBlock(in_ch, out_ch))
+            self.encoder.append(EncoderBlock(in_ch, out_ch, self.kernel_size, self.stride, self.padding))
             in_ch = out_ch
 
-        self.transformer = TransformerBlock(d_model=self.encoder_channels[-1], nhead=8, num_layers=6)
+        tf_cfg = model_cfg["transformer"]
+        self.transformer = TransformerBlock(d_model=tf_cfg["d_model"], nhead=tf_cfg["nhead"], num_layers=tf_cfg["num_layers"], dropout=tf_cfg["dropout"])
 
         in_ch = self.encoder_channels[-1]
         for out_ch in self.decoder_channels:
-            self.decoder.append(DecoderBlock(in_ch + out_ch, out_ch)) # skip connection으로 채널 2배
+            self.decoder.append(DecoderBlock(in_ch + out_ch, out_ch, self.kernel_size, self.stride, self.padding)) # skip connection으로 채널 2배
             in_ch = out_ch
         
         self.final_conv = nn.Conv1d(self.decoder_channels[-1], 1, kernel_size=1)
