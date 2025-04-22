@@ -93,7 +93,16 @@ Decoder output shapes are adjusted to match the original input resolution, typic
 
 ---
 
-### 7. Debugging Notes
+### 7. Skip Connections
+
+To enhance signal reconstruction, skip connections are added between each encoder and decoder layer (in reverse order).  
+This enables the decoder to reuse high-resolution features from the encoder.
+
+Time resolution mismatches between encoder and decoder features are handled via cropping or linear interpolation.
+
+---
+
+### 8. Debugging Notes
 
 If changes to `htdemucs.py` do not apply in notebooks, use:
 
@@ -119,6 +128,7 @@ This ensures the latest version is reloaded without restarting the kernel.
 - [ ] **Loss Function & Training Loop**
 - [ ] **Dataset Loader** (e.g., MUSDB18)
 - [ ] **Evaluation & Inference**
+- [ ] **Config Parameter Integration**
 
 ---
 

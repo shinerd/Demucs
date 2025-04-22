@@ -64,16 +64,44 @@ class DecoderBlock(nn.Module):
 class HTDemucs(nn.Module):
     def __init__(self):
         super().__init__()
-        channels = [48, 96, 192, 384, 768, 1536]
+        self.encoder_channels = [48, 96, 192, 384, 768, 1536]
+        self.decoder_channels = list(reversed(self.encoder_channels[:-1])) # 마지막 1536은 그대로 유지
         self.encoder = nn.ModuleList()
+        self.decoder = nn.ModuleList()
+
         in_ch = 1
-        for out_ch in channels:
+        for out_ch in self.encoder_channels:
             self.encoder.append(EncoderBlock(in_ch, out_ch))
             in_ch = out_ch
 
-        self.transformer = TransformerBlock(d_model=1536, nhead=8, num_layers=6)
+        self.transformer = TransformerBlock(d_model=self.encoder_channels[-1], nhead=8, num_layers=6)
+
+        in_ch = self.encoder_channels[-1]
+        for out_ch in self.decoder_channels:
+            self.decoder.append(DecoderBlock(in_ch + out_ch, out_ch)) # skip connection으로 채널 2배
+            in_ch = out_ch
+        
+        self.final_conv = nn.Conv1d(self.decoder_channels[-1], 1, kernel_size=1)
 
     def forward(self, x):
+        skips = []
         for layer in self.encoder:
             x = layer(x)
-        return x
+            skips.append(x)
+
+        x = self.transformer(x)
+        skips = skips[:-1][::-1]  # 맨 마지막 encoder output은 transformer input이므로 제외하고 역순
+
+        for i, layer in enumerate(self.decoder):
+            skip = skips[i]
+            if skip.shape[-1] != x.shape[-1]:
+                # 시간축 맞추기
+                diff = skip.shape[-1] - x.shape[-1]
+                if diff > 0:
+                    skip = skip[:, :, :-diff]  # 중심 crop
+                elif diff < 0:
+                    skip = nn.functional.interpolate(skip, size=x.shape[-1], mode='linear', align_corners=False) #interpolation
+            x = torch.cat([x, skip], dim=1)
+            x = layer(x)
+
+        return self.final_conv(x)
