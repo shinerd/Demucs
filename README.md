@@ -116,6 +116,17 @@ This ensures the latest version is reloaded without restarting the kernel.
 
 ---
 
+### 9. Configurable Architecture
+
+All model architecture hyperparameters are now configurable via a YAML file (`config/default.yaml`):
+
+- `encoder_channels`, `kernel_size`, `stride`, `padding`
+- Transformer settings (`d_model`, `nhead`, `num_layers`, `dropout`)
+
+Each encoder and decoder block receives its configuration from the YAML file, ensuring full modularity.
+
+---
+
 ## 🔜 Upcoming Modules
 
 - [ ] **GELU vs ReLU** explanation
